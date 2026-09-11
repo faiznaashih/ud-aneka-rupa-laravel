@@ -17,6 +17,7 @@ Route::get('/pesan', [OrderController::class, 'create'])->name('orders.create');
 Route::post('/pesan', [OrderController::class, 'store'])->name('orders.store');
 
 Route::get('/cek-status', [OrderController::class, 'cekStatus'])->name('orders.cek-status');
+Route::post('/cek-status', [OrderController::class, 'cekStatus']);
 
 // ------------------ Halaman Admin (wajib login) ------------------
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {

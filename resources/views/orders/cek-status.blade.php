@@ -22,7 +22,7 @@
         <div class="row justify-content-center">
             <div class="col-lg-8">
 
-                <div class="form-card mb-4">
+                <div class="form-card mb-4" id="lacak-box">
                     <h5 class="fw-700 mb-4"><i class="fa-solid fa-search me-2" style="color:var(--primary);"></i>Lacak Pesanan</h5>
                     <form method="POST" action="{{ route('orders.cek-status') }}" id="formCek" onsubmit="return validateForm('formCek')">
                         @csrf
@@ -165,3 +165,18 @@
 </section>
 
 @endsection
+
+<style>
+@media print {
+    nav, footer, .breadcrumb, #lacak-box, .btn-primary-custom, .btn-outline-custom, button {
+        display: none !important;
+    }
+    .page-hero { display: none !important; }
+    body { background: white !important; }
+    .order-card {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+    section { padding: 0 !important; background: white !important; }
+}
+</style>
