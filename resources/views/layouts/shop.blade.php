@@ -96,9 +96,7 @@
                         <p class="footer-desc">Produsen kerupuk berkualitas dengan cita rasa autentik sejak tahun 1985.</p>
                     </div>
                     <div class="social-links">
-                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-whatsapp"></i></a>
+                        <a href="https://wa.me/6281913207335" target="_blank" class="social-link"><i class="fab fa-whatsapp"></i></a>
                     </div>
                 </div>
                 <div class="col-lg-2 col-md-6 col-6">
@@ -122,8 +120,7 @@
                     <h6 class="footer-heading">Kontak Kami</h6>
                     <ul class="footer-contact">
                         <li><i class="fa-solid fa-location-dot text-warning"></i><span>Jl. Industri No. 45, Sidoarjo, Jawa Timur</span></li>
-                        <li><i class="fa-solid fa-phone text-warning"></i><span>+62 812-3456-7890</span></li>
-                        <li><i class="fa-solid fa-envelope text-warning"></i><span>info@udanekarupa.com</span></li>
+                        <li><i class="fa-solid fa-phone text-warning"></i><span>+62 819-1320-7335</span></li>
                         <li><i class="fa-solid fa-clock text-warning"></i><span>Senin - Sabtu: 08.00 - 17.00 WIB</span></li>
                     </ul>
                 </div>
