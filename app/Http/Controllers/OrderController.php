@@ -12,78 +12,102 @@ use Illuminate\View\View;
 
 class OrderController extends Controller
 {
-    // Form Pemesanan (pesan.php)
+    // Form Checkout - baca dari keranjang (session)
     public function create(Request $request): View|RedirectResponse
     {
-        $slug = $request->query('product');
-        $qty = max(1, (int) $request->query('qty', 1));
+        $cart = session('cart', []);
 
-        if (! $slug) {
-            return redirect()->route('products.index');
+        if (empty($cart) && ! session()->has('order_success')) {
+            return redirect()->route('products.index')->with('error', 'Keranjang Anda masih kosong.');
         }
 
-        $product = Product::where('slug', $slug)->where('is_active', true)->first();
+        $products = Product::whereIn('id', array_keys($cart))->get()->keyBy('id');
 
-        if (! $product || $product->stock <= 0) {
-            return redirect()->route('products.index');
+        $items = [];
+        $total = 0;
+        foreach ($cart as $productId => $qty) {
+            $product = $products->get($productId);
+            if (! $product) {
+                continue;
+            }
+            $subtotal = $product->price * $qty;
+            $total += $subtotal;
+            $items[] = ['product' => $product, 'qty' => $qty, 'subtotal' => $subtotal];
         }
 
-        return view('orders.create', compact('product', 'qty'));
+        return view('orders.create', compact('items', 'total'));
     }
 
-    // Submit Pemesanan
+    // Submit Pemesanan - proses semua item di keranjang jadi 1 pesanan
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'product_id' => ['required', 'exists:products,id'],
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'regex:/^[0-9\-\s]{10,13}$/'],
             'address' => ['required', 'string'],
-            'quantity' => ['required', 'integer', 'min:1'],
             'notes' => ['nullable', 'string'],
         ], [
             'phone.regex' => 'Format nomor HP tidak valid.',
         ]);
 
-        $product = Product::findOrFail($validated['product_id']);
-
-        if ($validated['quantity'] > $product->stock) {
-            return back()->withErrors(['quantity' => "Stok tidak mencukupi. Stok tersedia: {$product->stock}"])->withInput();
+        $cart = session('cart', []);
+        if (empty($cart)) {
+            return redirect()->route('products.index')->with('error', 'Keranjang Anda masih kosong.');
         }
 
-        $order = DB::transaction(function () use ($validated, $product) {
+        $products = Product::whereIn('id', array_keys($cart))->get()->keyBy('id');
+
+        // Validasi stok semua item dulu sebelum simpan apapun
+        foreach ($cart as $productId => $qty) {
+            $product = $products->get($productId);
+            if (! $product || $qty > $product->stock) {
+                return back()->withErrors(['quantity' => "Stok \"{$product?->name}\" tidak mencukupi."])->withInput();
+            }
+        }
+
+        $order = DB::transaction(function () use ($validated, $cart, $products) {
             $customer = Customer::create([
                 'name' => $validated['name'],
                 'phone' => $validated['phone'],
                 'address' => $validated['address'],
             ]);
 
-            $subtotal = $product->price * $validated['quantity'];
-
             $order = Order::create([
                 'customer_id' => $customer->id,
                 'status' => 'pending',
                 'notes' => $validated['notes'] ?? null,
-                'total' => $subtotal,
+                'total' => 0,
             ]);
 
-            $order->items()->create([
-                'product_id' => $product->id,
-                'product_name' => $product->name,
-                'price' => $product->price,
-                'quantity' => $validated['quantity'],
-                'subtotal' => $subtotal,
-            ]);
+            $total = 0;
+            foreach ($cart as $productId => $qty) {
+                $product = $products->get($productId);
+                $subtotal = $product->price * $qty;
+                $total += $subtotal;
+
+                $order->items()->create([
+                    'product_id' => $product->id,
+                    'product_name' => $product->name,
+                    'price' => $product->price,
+                    'quantity' => $qty,
+                    'subtotal' => $subtotal,
+                ]);
+            }
+
+            $order->update(['total' => $total]);
 
             return $order;
         });
 
+        // Kosongkan keranjang setelah pesanan berhasil
+        session()->forget('cart');
+
         return redirect()
-            ->route('orders.create', ['product' => $product->slug])
+            ->route('orders.create')
             ->with('order_success', $order->order_code);
     }
 
-    // Cek Status Pesanan (cek_status.php) - form dan hasil di satu halaman
+    // Cek Status Pesanan
     public function cekStatus(Request $request): View
     {
         $kode = $request->input('kode_pesanan', $request->query('kode', ''));

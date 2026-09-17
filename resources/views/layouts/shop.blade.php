@@ -33,9 +33,22 @@
             </div>
         </a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <div class="d-flex align-items-center gap-2 order-lg-3">
+            <a href="{{ route('cart.index') }}" class="position-relative d-inline-flex align-items-center justify-content-center"
+               style="width:42px;height:42px;border-radius:50%;background:var(--light-bg);color:var(--primary);">
+                <i class="fa-solid fa-cart-shopping"></i>
+                @php($cartCount = collect(session('cart', []))->sum())
+                @if ($cartCount > 0)
+                <span class="position-absolute badge rounded-pill bg-danger" style="top:-4px;right:-4px;font-size:.65rem;">
+                    {{ $cartCount }}
+                </span>
+                @endif
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
 
         <div class="collapse navbar-collapse" id="navMenu">
             <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
@@ -55,8 +68,8 @@
                     </a>
                 </li>
                 <li class="nav-item ms-lg-2">
-                    <a class="btn btn-order" href="{{ route('products.index') }}">
-                        <i class="fa-solid fa-cart-shopping me-1"></i> Pesan Sekarang
+                    <a class="btn btn-order" href="{{ route('cart.index') }}">
+                        <i class="fa-solid fa-cart-shopping me-1"></i> Keranjang
                     </a>
                 </li>
             </ul>
@@ -110,17 +123,18 @@
                 <div class="col-lg-2 col-md-6 col-6">
                     <h6 class="footer-heading">Kategori</h6>
                     <ul class="footer-links">
-                        <li><a href="{{ route('products.index', ['category' => 'original']) }}">Original</a></li>
-                        <li><a href="{{ route('products.index', ['category' => 'pedas']) }}">Pedas</a></li>
-                        <li><a href="{{ route('products.index', ['category' => 'gurih']) }}">Gurih</a></li>
-                        <li><a href="{{ route('products.index', ['category' => 'manis']) }}">Manis</a></li>
+                        <li><a href="{{ route('products.index', ['kategori' => 'original']) }}">Original</a></li>
+                        <li><a href="{{ route('products.index', ['kategori' => 'pedas']) }}">Pedas</a></li>
+                        <li><a href="{{ route('products.index', ['kategori' => 'gurih']) }}">Gurih</a></li>
+                        <li><a href="{{ route('products.index', ['kategori' => 'manis']) }}">Manis</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-4 col-md-6">
                     <h6 class="footer-heading">Kontak Kami</h6>
                     <ul class="footer-contact">
-                        <li><i class="fa-solid fa-location-dot text-warning"></i><span>Jl. Industri No. 45, Sidoarjo, Jawa Timur</span></li>
+                        <li><i class="fa-solid fa-location-dot text-warning"></i><span>Desa Tlasih, Tulangan, Sidoarjo, Jawa Timur</span></li>
                         <li><i class="fa-solid fa-phone text-warning"></i><span>+62 819-1320-7335</span></li>
+                        <li><i class="fa-solid fa-envelope text-warning"></i><span>info@udanekarupa.com</span></li>
                         <li><i class="fa-solid fa-clock text-warning"></i><span>Senin - Sabtu: 08.00 - 17.00 WIB</span></li>
                     </ul>
                 </div>

@@ -19,29 +19,39 @@ class ProductController extends Controller
         return view('home', compact('products', 'totalProduk', 'totalPesananSelesai'));
     }
 
-    // Halaman Daftar Produk (produk.php): search + filter kategori + pagination
+    // Halaman Daftar Produk: search + filter kategori + sortir + pagination
     public function index(Request $request): View
     {
         $search = $request->input('search', '');
         $kategori = $request->input('kategori', '');
+        $sort = $request->input('sort', 'terbaru');
 
         $products = Product::query()
             ->where('is_active', true)
+            ->withCount('orderItems')
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($q2) use ($search) {
                     $q2->where('name', 'like', "%{$search}%")
-                       ->orWhere('description', 'like', "%{$search}%");
+                        ->orWhere('description', 'like', "%{$search}%");
                 });
             })
             ->when($kategori && $kategori !== 'semua', fn ($q) => $q->where('category', $kategori))
-            ->latest()
-            ->paginate(6)
+            ->when($sort === 'harga-asc', fn ($q) => $q->orderBy('price', 'asc'))
+            ->when($sort === 'harga-desc', fn ($q) => $q->orderBy('price', 'desc'))
+            ->when($sort === 'terpopuler', fn ($q) => $q->orderByDesc('order_items_count'))
+            ->when($sort === 'terbaru' || ! $sort, fn ($q) => $q->latest())
+            ->paginate(9)
             ->withQueryString();
 
-        return view('products.index', compact('products', 'search', 'kategori'));
+        $bestSellerId = Product::where('is_active', true)
+            ->withCount('orderItems')
+            ->orderByDesc('order_items_count')
+            ->value('id');
+
+        return view('products.index', compact('products', 'search', 'kategori', 'sort', 'bestSellerId'));
     }
 
-    // Halaman Detail Produk (detail.php)
+    // Halaman Detail Produk
     public function show(string $slug): View
     {
         $product = Product::where('slug', $slug)->where('is_active', true)->firstOrFail();

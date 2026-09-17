@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
@@ -13,8 +14,15 @@ Route::get('/', [ProductController::class, 'home'])->name('home');
 Route::get('/produk', [ProductController::class, 'index'])->name('products.index');
 Route::get('/produk/{slug}', [ProductController::class, 'show'])->name('products.show');
 
-Route::get('/pesan', [OrderController::class, 'create'])->name('orders.create');
-Route::post('/pesan', [OrderController::class, 'store'])->name('orders.store');
+// Keranjang
+Route::get('/keranjang', [CartController::class, 'index'])->name('cart.index');
+Route::post('/keranjang/{product}', [CartController::class, 'add'])->name('cart.add');
+Route::patch('/keranjang/{product}', [CartController::class, 'update'])->name('cart.update');
+Route::delete('/keranjang/{product}', [CartController::class, 'remove'])->name('cart.remove');
+
+// Checkout & Pesanan
+Route::get('/checkout', [OrderController::class, 'create'])->name('orders.create');
+Route::post('/checkout', [OrderController::class, 'store'])->name('orders.store');
 
 Route::get('/cek-status', [OrderController::class, 'cekStatus'])->name('orders.cek-status');
 Route::post('/cek-status', [OrderController::class, 'cekStatus']);

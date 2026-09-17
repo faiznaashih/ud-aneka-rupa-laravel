@@ -1,6 +1,6 @@
 @extends('layouts.shop')
 
-@section('title', 'Form Pemesanan')
+@section('title', 'Checkout')
 
 @section('content')
 
@@ -9,12 +9,12 @@
         <nav aria-label="breadcrumb" class="mb-3">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('home') }}">Beranda</a></li>
-                <li class="breadcrumb-item"><a href="{{ route('products.index') }}">Produk</a></li>
-                <li class="breadcrumb-item active">Form Pemesanan</li>
+                <li class="breadcrumb-item"><a href="{{ route('cart.index') }}">Keranjang</a></li>
+                <li class="breadcrumb-item active">Checkout</li>
             </ol>
         </nav>
-        <h1 class="mb-1"><i class="fa-solid fa-cart-shopping me-2" style="color:var(--primary)!important;"></i> Form Pemesanan</h1>
-        <p class="text-muted mb-0">Isi data Anda untuk melakukan pemesanan</p>
+        <h1 class="mb-1"><i class="fa-solid fa-cart-shopping me-2" style="color:var(--primary)!important;"></i> Checkout</h1>
+        <p class="text-muted mb-0">Lengkapi data pengiriman untuk menyelesaikan pesanan</p>
     </div>
 </section>
 
@@ -26,7 +26,7 @@
                 <div class="form-card">
                     <h5 class="fw-700 mb-4">
                         <i class="fa-solid fa-user-pen me-2" style="color:var(--primary);"></i>
-                        Data Pemesanan
+                        Data Pengiriman
                     </h5>
 
                     @if ($errors->any())
@@ -44,7 +44,6 @@
 
                     <form method="POST" action="{{ route('orders.store') }}" id="formPesan" onsubmit="return validateForm('formPesan')">
                         @csrf
-                        <input type="hidden" name="product_id" value="{{ $product->id }}">
 
                         <div class="mb-3">
                             <label class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
@@ -69,26 +68,13 @@
                             <div class="invalid-feedback">Alamat wajib diisi.</div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Jumlah Pesanan <span class="text-danger">*</span></label>
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="qty-control">
-                                    <button class="qty-btn" type="button" onclick="changeQty('minus')">−</button>
-                                    <input type="number" name="quantity" id="jumlah" class="qty-input" value="{{ old('quantity', $qty) }}" min="1" max="{{ $product->stock }}" oninput="updateTotal()" required>
-                                    <input type="hidden" id="harga_satuan" value="{{ $product->price }}">
-                                    <button class="qty-btn" type="button" onclick="changeQty('plus')">+</button>
-                                </div>
-                                <small class="text-muted">Stok tersedia: <strong>{{ $product->stock }}</strong></small>
-                            </div>
-                        </div>
-
                         <div class="mb-4">
                             <label class="form-label">Catatan (Opsional)</label>
                             <textarea name="notes" class="form-control" rows="2" placeholder="Catatan tambahan untuk pesanan (misal: kemasan khusus, permintaan lain)">{{ old('notes') }}</textarea>
                         </div>
 
                         <button type="submit" class="btn-primary-custom w-100 justify-content-center py-3" style="display:flex;">
-                            <i class="fa-solid fa-paper-plane me-2"></i> Kirim Pesanan
+                            <i class="fa-solid fa-paper-plane me-2"></i> Buat Pesanan
                         </button>
                     </form>
                 </div>
@@ -101,30 +87,26 @@
                         <i class="fa-solid fa-receipt me-2" style="color:var(--primary);"></i>
                         Ringkasan Pesanan
                     </h5>
-                    <div class="d-flex gap-3 mb-4 p-3 rounded-3" style="background:var(--light-bg);">
-                        <div style="width:80px;height:80px;border-radius:10px;overflow:hidden;flex-shrink:0;">
-                            <img src="{{ $product->image ? asset('storage/' . $product->image) : 'https://placehold.co/120x120/FFF7ED/F97316?text=IMG' }}" alt="" style="width:100%;height:100%;object-fit:cover;">
+
+                    @foreach ($items ?? [] as $item)
+                    @php($p = $item['product'])
+                    <div class="d-flex gap-3 mb-3 pb-3 border-bottom">
+                        <div style="width:60px;height:60px;border-radius:10px;overflow:hidden;flex-shrink:0;">
+                            <img src="{{ $p->image ? asset('storage/' . $p->image) : 'https://placehold.co/100x100/FFF7ED/F97316?text=IMG' }}" alt="" style="width:100%;height:100%;object-fit:cover;">
                         </div>
-                        <div>
-                            <div class="fw-700" style="font-size:.9rem;">{{ $product->name }}</div>
-                            <div class="text-muted small mb-1">{{ $product->berat_gram }}g · {{ ucfirst($product->category) }}</div>
-                            <div class="fw-800" style="color:var(--primary);">Rp {{ number_format($product->price, 0, ',', '.') }}</div>
+                        <div class="flex-grow-1">
+                            <div class="fw-700" style="font-size:.88rem;">{{ $p->name }}</div>
+                            <div class="text-muted small">{{ $item['qty'] }} x Rp {{ number_format($p->price, 0, ',', '.') }}</div>
+                        </div>
+                        <div class="fw-700 align-self-center" style="color:var(--primary);font-size:.88rem;">
+                            Rp {{ number_format($item['subtotal'], 0, ',', '.') }}
                         </div>
                     </div>
+                    @endforeach
 
-                    <div class="border-top pt-3">
-                        <div class="d-flex justify-content-between mb-2 text-muted small">
-                            <span>Harga satuan</span>
-                            <span class="fw-600 text-dark">Rp {{ number_format($product->price, 0, ',', '.') }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2 text-muted small">
-                            <span>Jumlah</span>
-                            <span class="fw-600 text-dark" id="qty-display">&times; {{ $qty }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between border-top pt-2 mt-2">
-                            <span class="fw-700">Total</span>
-                            <span class="fw-800 fs-5" style="color:var(--primary);" id="total_display">Rp {{ number_format($product->price * $qty, 0, ',', '.') }}</span>
-                        </div>
+                    <div class="d-flex justify-content-between pt-2">
+                        <span class="fw-700">Total</span>
+                        <span class="fw-800 fs-5" style="color:var(--primary);">Rp {{ number_format($total ?? 0, 0, ',', '.') }}</span>
                     </div>
 
                     <div class="mt-4 p-3 rounded-3" style="background:linear-gradient(135deg,var(--light-bg),#FEF3C7);border:1px solid var(--primary-light);">
@@ -145,23 +127,13 @@
 
 @push('scripts')
 <script>
-const jumlahInput = document.getElementById('jumlah');
-if (jumlahInput) {
-    function updateQtyDisplay() {
-        const el = document.getElementById('qty-display');
-        if (el) el.textContent = '\u00d7 ' + (jumlahInput.value || 1);
-        updateTotal();
-    }
-    jumlahInput.addEventListener('input', updateQtyDisplay);
-}
-
 @if (session('order_success'))
 document.addEventListener('DOMContentLoaded', function() {
     Swal.fire({
         icon: 'success',
         title: '🎉 Pesanan Berhasil!',
         html: `
-            <p>Pesanan Anda telah berhasil dikirim.</p>
+            <p>Pesanan Anda telah berhasil dibuat.</p>
             <div style="background:#FFF7ED;border:2px solid #FED7AA;border-radius:12px;padding:12px 20px;margin:12px 0;">
                 <div style="color:#78716C;font-size:.85rem;margin-bottom:4px;">Kode Pesanan Anda:</div>
                 <div style="font-size:1.3rem;font-weight:800;color:#F97316;letter-spacing:1px;">{{ session('order_success') }}</div>
@@ -171,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
         confirmButtonColor: '#F97316',
         confirmButtonText: 'Lihat Status Pesanan',
         showCancelButton: true,
-        cancelButtonText: 'Pesan Lagi',
+        cancelButtonText: 'Belanja Lagi',
         cancelButtonColor: '#78716C'
     }).then(result => {
         if (result.isConfirmed) {

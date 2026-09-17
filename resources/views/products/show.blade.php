@@ -87,13 +87,14 @@
                 <hr style="border-color:var(--primary-light);">
 
                 @if ($product->stock > 0)
-                <div>
-                    <h6 class="fw-700 mb-3"><i class="fa-solid fa-cart-shopping me-2 text-warning"></i>Pesan Produk Ini</h6>
+                <form method="POST" action="{{ route('cart.add', $product) }}">
+                    @csrf
+                    <h6 class="fw-700 mb-3"><i class="fa-solid fa-cart-shopping me-2 text-warning"></i>Tambahkan ke Keranjang</h6>
                     <div class="d-flex align-items-center gap-3 mb-3">
                         <label class="fw-600 mb-0" style="font-size:.9rem;">Jumlah:</label>
                         <div class="qty-control">
                             <button class="qty-btn" type="button" onclick="changeQty('minus')">−</button>
-                            <input type="number" id="jumlah" class="qty-input" value="1" min="1" max="{{ $product->stock }}" oninput="updateTotal()">
+                            <input type="number" name="quantity" id="jumlah" class="qty-input" value="1" min="1" max="{{ $product->stock }}" oninput="updateTotal()">
                             <input type="hidden" id="harga_satuan" value="{{ $product->price }}">
                             <button class="qty-btn" type="button" onclick="changeQty('plus')">+</button>
                         </div>
@@ -103,12 +104,10 @@
                         <span class="fw-600 text-muted">Total Estimasi:</span>
                         <span class="fw-800 fs-5" style="color:var(--primary);" id="total_display">Rp {{ number_format($product->price, 0, ',', '.') }}</span>
                     </div>
-                    <a href="{{ route('orders.create', ['product' => $product->slug, 'qty' => 1]) }}"
-                       id="btn-pesan-link"
-                       class="btn-primary-custom d-inline-flex w-100 justify-content-center py-3">
-                        <i class="fa-solid fa-cart-plus me-2"></i> Pesan Sekarang
-                    </a>
-                </div>
+                    <button type="submit" class="btn-primary-custom d-inline-flex w-100 justify-content-center py-3">
+                        <i class="fa-solid fa-cart-plus me-2"></i> Tambah ke Keranjang
+                    </button>
+                </form>
                 @else
                 <div class="alert alert-danger rounded-3">
                     <i class="fa-solid fa-circle-xmark me-2"></i>
@@ -143,7 +142,11 @@
                             </div>
                             <div class="product-actions">
                                 <a href="{{ route('products.show', $r->slug) }}" class="btn-detail">Detail</a>
-                                <a href="{{ route('orders.create', ['product' => $r->slug]) }}" class="btn-order-sm">Pesan</a>
+                                <form method="POST" action="{{ route('cart.add', $r) }}">
+                                    @csrf
+                                    <input type="hidden" name="quantity" value="1">
+                                    <button type="submit" class="btn-order-sm">+ Keranjang</button>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -156,14 +159,3 @@
 </section>
 
 @endsection
-
-@push('scripts')
-<script>
-document.getElementById('jumlah')?.addEventListener('input', function() {
-    const qty = this.value || 1;
-    const link = document.getElementById('btn-pesan-link');
-    if (link) link.href = "{{ route('orders.create', ['product' => $product->slug]) }}" + '&qty=' + qty;
-    updateTotal();
-});
-</script>
-@endpush
